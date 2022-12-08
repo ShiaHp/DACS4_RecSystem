@@ -5,8 +5,7 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 
 
-def getRef(movie_name):
-    movies_data = pd.read_csv('./movies.csv')
+def getRef(movies_data,movie_name):
     selected_features = ['genres', 'keywords', 'tagline', 'cast', 'director']
     for feature in selected_features:
         movies_data[feature] = movies_data[feature].fillna('')
@@ -27,13 +26,14 @@ def getRef(movie_name):
     similarity_score = list(enumerate(similarity[index_of_the_movie]))
 
     sorted_similar_movies = sorted(similarity_score, key=lambda x: x[1], reverse=True)
-    arrayMovie = []
+    list_movie = []
 
     for movie in sorted_similar_movies:
         index = movie[0]
         i = 1
         title_from_index = movies_data[movies_data.index == index]['title'].values[0]
-        if (i < 30):
-            arrayMovie.append(title_from_index)
-            i = i + 1
-    return arrayMovie
+        if i < 30:
+            title_movie = str(i) + ' ' + title_from_index
+            list_movie.append(title_movie)
+            i += 1
+    return list_movie
