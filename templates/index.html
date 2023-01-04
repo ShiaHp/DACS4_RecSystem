@@ -1,0 +1,162 @@
+<html>
+  <head>
+    <title>ElasticSearch Flask Autosuggestions</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.1/jquery.min.js" integrity="sha512-aVKKRRi/Q/YV+4mjoKBsE4x3H+BkegoM/em46NNlCqNTmUYADjBbeNefNxYV7giUp0VxICtqdrbqU7iVaeZNXA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  </head>
+  <style>
+    .main{
+    width : 500px;
+    height : 250px;
+     margin-right : 100px;
+     padding : 10px;
+     overflow : hidden;
+    }
+
+.btn-getRec{
+  border-radius: 5px;
+  margin-left : 50px;
+  font-size: 10px;
+  padding: 5px 10px;
+  cursor: pointer;
+  color: #fff;
+  background-color: #00A6FF;
+  font-size: 1.5rem;
+  font-family: 'Roboto';
+  font-weight: 50;
+  border: 1px solid #fff;
+  box-shadow: 2px 2px 5px #AFE9FF;
+  transition-duration: 0.5s;
+  -webkit-transition-duration: 0.5s;
+  -moz-transition-duration: 0.5s;
+}
+.btn-getRec:hover {
+  color: #006398;
+  border: 1px solid #006398;
+  box-shadow: 2px 2px 20px #AFE9FF;
+}
+.list {
+  display: grid;
+  grid-template-columns: 180px 180px;
+  width: 360px;
+  margin-left: 0;
+  padding-left: 0;
+  border: 1px solid rgb(0, 0, 0);
+  list-style-type: none;
+}
+
+.list li {
+  width: 180px;
+  border: 1px solid rgb(0, 0, 0);
+  box-sizing: border-box;
+}
+
+.list li span {
+  display: block;
+  padding: 6px 9px;
+  border: 1px solid rgb(0, 0, 0);
+}
+
+.list li span.category {
+  font-weight: bold;
+  text-align: center;
+  text-transform: uppercase;
+}
+.container {
+container-type: inline-size;
+  margin-right : 80px;
+  padding : 20px;
+}
+.divide-ul{
+   display: flex;
+  align-items: center;
+  }
+  </style>
+  <body>
+  <div class = "main">
+    <input class="search-box" id = "text">
+    <button id="btn-getRec" class="btn-getRec">Confirm</button>
+      <div class="results-div">
+          <ul class="results">
+      </ul>
+  </div>
+
+
+  </div>
+   <div class="container">
+      <div class="divide-ul">
+         <ul class="list">
+             <h2 class="text">Results from search</h2>
+        <li class="results-search">
+        </li>
+
+      </ul>
+          <ul class="list">
+                <h2 class="text">Results from recommend</h2>
+        <li class="results-rec">
+
+      </li>
+          </ul>
+      </div>
+
+    </div>
+    <script>
+let input;
+let keywordtoSearch;
+var text = document.getElementById("text");
+window.onload = function () {
+  text.addEventListener("input", function () {
+    input = text.value;
+  });
+};
+
+$(document).ready(function () {
+  let debounce;
+  $(".search-box").on("keydown", function (e) {
+    clearTimeout(debounce);
+    debounce = setTimeout(() => {
+      getAutoComplete();
+    }, 10);
+  });
+});
+let dataCurrent;
+function getAutoComplete() {
+  const query = $(".search-box").val();
+  dataCurrent = ""
+  fetch(`http://localhost:5000/search?q=${encodeURIComponent(query.trim())}`)
+    .then((resp) => resp.json())
+    .then((data) => {
+      $(".results").empty();
+      dataCurrent = data;
+      keywordtoSearch = data[0]
+      for (let i = 0; i < data.length; i++) {
+        $(".results").append(`<li>${data[i]}</li>`);
+      }
+    });
+}
+
+const button = document.getElementById("btn-getRec");
+ button.addEventListener("click", confirmUsersearch);
+async function confirmUsersearch() {
+    $(".results-search").empty();
+    for (let i = 0; i < dataCurrent .length; i++) {
+      $(".results-search").append(`<span>${dataCurrent [i]}</span>`);
+    }
+
+    fetch(`http://localhost:5000/getReccommend?q=${encodeURIComponent(keywordtoSearch.trim())}`)
+    .then((resp) => resp.json())
+    .then((dataReturnFromRec) => {
+        $(".results-rec").empty();
+        for (let name of dataReturnFromRec) {
+          name = get2ndHalf(name)
+          $(".results-rec").append(`<span>${name}</span>`);
+        }
+    });
+const get2ndHalf = (csv, del = ' ') => {
+  const arr = csv.split(del);
+  return arr.slice(Math.floor(arr.length / 2)).join(del).trim();
+}
+
+  }
+    </script>
+  </body>
+</html>
